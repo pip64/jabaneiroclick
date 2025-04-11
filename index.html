@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Жабное Логово: Кликер и Улучшения</title>
+  <style>
+    /* Сброс стилей */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* Основной фон и базовая вёрстка */
+    body {
+      background: linear-gradient(135deg, #0a0, #050);
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Хедер */
+    header {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 20;
+    }
+    header h2 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 8px #000;
+    }
+    header #clickCount {
+      font-size: 1.5em;
+      text-shadow: 1px 1px 4px #000;
+    }
+    /* Навигация */
+    .navigation {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      text-align: center;
+      z-index: 20;
+    }
+    .navigation button {
+      margin: 0 10px;
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background: #4ba;
+      color: #fff;
+      transition: background 0.3s;
+    }
+    .navigation button:hover {
+      background: #2a7;
+    }
+    /* Модальные окна */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      z-index: 30;
+      overflow-y: auto;
+    }
+    .modal-content {
+      background: #fff;
+      color: #000;
+      margin: 50px auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 600px;
+    }
+    .modal-content h2 {
+      margin-bottom: 20px;
+    }
+    .modal-content button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background: #4ba;
+      color: #fff;
+      transition: background 0.3s;
+    }
+    .modal-content button:hover {
+      background: #2a7;
+    }
+    .close-modal {
+      background: #f00;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .close-modal:hover {
+      background: #d00;
+    }
+    /* Стили для скинов */
+    .skin-item {
+      display: flex;
+      align-items: center;
+      margin: 10px 0;
+    }
+    .skin-preview {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      margin-right: 10px;
+      border: 2px solid #000;
+    }
+    .skin-item button {
+      flex: 1;
+    }
+    /* Стили для лягушки */
+    .frog {
+      position: absolute;
+      left: 50%;
+      top: 60%;
+      transform: translate(-50%, -50%);
+      width: 150px;
+      height: 100px;
+      background: linear-gradient(145deg, #4ba, #2a7);
+      border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+      box-shadow: 
+        0 4px 6px rgba(0,0,0,0.3),
+        inset -5px -5px 10px rgba(0,0,0,0.2),
+        inset 5px 5px 10px rgba(255,255,255,0.2);
+      cursor: pointer;
+      user-select: none;
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+      z-index: 10;
+    }
+    .frog:hover {
+      box-shadow: 
+        0 8px 12px rgba(0,0,0,0.4),
+        inset -5px -5px 10px rgba(0,0,0,0.25),
+        inset 5px 5px 10px rgba(255,255,255,0.25);
+    }
+    /* Глаза лягушки */
+    .eye {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: radial-gradient(circle, #fff 60%, #eaeaea);
+      border-radius: 50%;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.3);
+      top: 10px;
+    }
+    .eye.left {
+      left: 25px;
+    }
+    .eye.right {
+      right: 25px;
+    }
+    .eye .pupil {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: radial-gradient(circle, #000 60%, #333);
+      border-radius: 50%;
+      top: 5px;
+      left: 5px;
+      box-shadow: 0 2px 2px rgba(0,0,0,0.4);
+    }
+    /* Рот лягушки */
+    .mouth {
+      position: absolute;
+      width: 60px;
+      height: 30px;
+      border-bottom: 4px solid #000;
+      border-radius: 0 0 50px 50px;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    /* Анимация прыжка */
+    @keyframes jump {
+      0% { transform: translate(-50%, -50%) scale(1); }
+      30% { transform: translate(-50%, calc(-50% - 50px)) scale(1.05); }
+      50% { transform: translate(-50%, -50%) scale(1); }
+      70% { transform: translate(-50%, calc(-50% - 20px)) scale(1.03); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+    .jump {
+      animation: jump 1s ease-out;
+    }
+    /* Пруд */
+    .pond {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 200px;
+      background: rgba(0, 100, 0, 0.5);
+      border-top: 2px solid #030;
+      z-index: 1;
+      box-shadow: 0 -5px 10px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <!-- Хедер -->
+  <header>
+    <h2 id="pageTitle">Главная страница</h2>
+    <div id="clickCount">Счёт кликов: 0</div>
+  </header>
+
+  <!-- Лягушка -->
+  <div class="frog" id="frog">
+    <div class="eye left">
+      <div class="pupil"></div>
+    </div>
+    <div class="eye right">
+      <div class="pupil"></div>
+    </div>
+    <div class="mouth"></div>
+  </div>
+
+  <!-- Пруд -->
+  <div class="pond"></div>
+
+  <!-- Навигация -->
+  <div class="navigation">
+    <button id="openUpgrades">Меню улучшений</button>
+    <button id="openStats">Статистика</button>
+    <button id="openSkins">Скины</button>
+  </div>
+
+  <!-- Модальное окно для меню улучшений -->
+  <div class="modal upgrades-modal">
+    <div class="modal-content">
+      <h2>Меню улучшений</h2>
+      <button id="upgradeClick">Улучшить клик (Множитель: x1) — Цена: 10</button>
+      <button id="upgradeColor">Сменить цвета — Цена: 15</button>
+      <button class="close-modal">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно для статистики -->
+  <div class="modal stats-modal">
+    <div class="modal-content">
+      <h2>Статистика</h2>
+      <p>Здесь будет отображаться статистика игры.</p>
+      <button class="close-modal">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Модальное окно для скинов -->
+  <div class="modal skins-modal">
+    <div class="modal-content">
+      <h2>Скины</h2>
+      <div id="skinsList"></div>
+      <button class="close-modal">Закрыть</button>
+    </div>
+  </div>
+
+  <script>
+    const frog = document.getElementById('frog');
+    const clickCountElem = document.getElementById('clickCount');
+    const upgradeClickBtn = document.getElementById('upgradeClick');
+    const upgradeColorBtn = document.getElementById('upgradeColor');
+    const openUpgradesBtn = document.getElementById('openUpgrades');
+    const openStatsBtn = document.getElementById('openStats');
+    const openSkinsBtn = document.getElementById('openSkins');
+    const skinsList = document.getElementById('skinsList');
+    const pageTitle = document.getElementById('pageTitle');
+
+    let clickCount = 0;
+    let clickMultiplier = 1;
+    let upgradeCostClick = 10;
+    let upgradeCostColor = 15;
+    let skins = [{ gradient: 'linear-gradient(145deg, #4ba, #2a7)', name: 'Стандартный' }]; // Начальный скин
+    let activeSkin = skins[0].gradient;
+
+    // Клик по лягушке
+    frog.addEventListener('click', () => {
+      clickCount += clickMultiplier;
+      clickCountElem.textContent = "Счёт кликов: " + clickCount;
+      frog.classList.add('jump');
+      setTimeout(() => frog.classList.remove('jump'), 1000);
+    });
+
+    // Генерация случайного градиента
+    function getRandomGradient() {
+      const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+      return `linear-gradient(145deg, ${randomColor()}, ${randomColor()})`;
+    }
+
+    // Улучшение клика
+    upgradeClickBtn.addEventListener('click', () => {
+      if (clickCount >= upgradeCostClick) {
+        clickCount -= upgradeCostClick;
+        clickMultiplier++;
+        upgradeCostClick = Math.floor(upgradeCostClick * 1.5);
+        clickCountElem.textContent = "Счёт кликов: " + clickCount;
+        upgradeClickBtn.textContent = `Улучшить клик (Множитель: x${clickMultiplier}) — Цена: ${upgradeCostClick}`;
+      } else {
+        alert("Недостаточно кликов для улучшения!");
+      }
+    });
+
+    // Смена цветов
+    upgradeColorBtn.addEventListener('click', () => {
+      if (clickCount >= upgradeCostColor) {
+        clickCount -= upgradeCostColor;
+        const newGradient = getRandomGradient();
+        skins.push({ gradient: newGradient, name: `Скин ${skins.length}` });
+        frog.style.background = newGradient;
+        activeSkin = newGradient;
+        upgradeCostColor = Math.floor(upgradeCostColor * 1.5);
+        clickCountElem.textContent = "Счёт кликов: " + clickCount;
+        upgradeColorBtn.textContent = `Сменить цвета — Цена: ${upgradeCostColor}`;
+      } else {
+        alert("Недостаточно кликов для смены цветов!");
+      }
+    });
+
+    // Отображение скинов
+    function renderSkins() {
+      skinsList.innerHTML = '';
+      skins.forEach(skin => {
+        const skinItem = document.createElement('div');
+        skinItem.className = 'skin-item';
+        skinItem.innerHTML = `
+          <div class="skin-preview" style="background: ${skin.gradient};"></div>
+          <button>${skin.name}</button>
+        `;
+        const button = skinItem.querySelector('button');
+        button.addEventListener('click', () => {
+          frog.style.background = skin.gradient;
+          activeSkin = skin.gradient;
+        });
+        skinsList.appendChild(skinItem);
+      });
+    }
+
+    // Открытие модальных окон
+    openUpgradesBtn.addEventListener('click', () => {
+      document.querySelector('.upgrades-modal').style.display = 'block';
+      pageTitle.textContent = 'Меню улучшений';
+    });
+
+    openStatsBtn.addEventListener('click', () => {
+      document.querySelector('.stats-modal').style.display = 'block';
+      pageTitle.textContent = 'Статистика';
+    });
+
+    openSkinsBtn.addEventListener('click', () => {
+      document.querySelector('.skins-modal').style.display = 'block';
+      pageTitle.textContent = 'Скины';
+      renderSkins();
+    });
+
+    // Закрытие модальных окон
+    document.querySelectorAll('.close-modal').forEach(button => {
+      button.addEventListener('click', () => {
+        button.closest('.modal').style.display = 'none';
+        pageTitle.textContent = 'Главная страница';
+      });
+    });
+  </script>
+</body>
+</html>
