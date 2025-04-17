@@ -85,6 +85,26 @@
             border-radius: 50%;
         }
 
+        .click-effect {
+            position: absolute;
+            color: gold;
+            font-weight: bold;
+            font-size: 24px;
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+        }
+
         .profile-header {
             background: var(--tg-theme-button-color);
             padding: 60px 15px 15px;
@@ -116,11 +136,6 @@
         .profile-username {
             color: #888;
             margin-bottom: 15px;
-        }
-
-        .profile-bio {
-            padding: 0 20px;
-            color: #aaa;
         }
 
         .back-btn {
@@ -216,7 +231,6 @@
         <div class="profile-info">
             <h2 class="profile-name" id="profileName"></h2>
             <div class="profile-username" id="profileUsername"></div>
-            <div class="profile-bio" id="profileBio">Люблю жаб, кликеры и криптовалюту 🐸🚀</div>
         </div>
 
         <div class="upgrades">
@@ -236,7 +250,6 @@
     </div>
 
     <script>
-        // Инициализация Telegram WebApp
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.enableClosingConfirmation();
@@ -252,8 +265,19 @@
         const scoreElement = document.getElementById('score');
         const totalEarnedElement = document.getElementById('totalEarned');
         const highScoreElement = document.getElementById('highScore');
-        
-        // Загрузка данных пользователя Telegram
+        const clickArea = document.getElementById('clickArea');
+
+        function createClickEffect(amount, x, y) {
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = `+${amount}`;
+            effect.style.left = `${x}px`;
+            effect.style.top = `${y}px`;
+            document.body.appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 1000);
+        }
+
         function loadUserData() {
             const user = tg.initDataUnsafe.user;
             if(user) {
@@ -266,7 +290,6 @@
             }
         }
 
-        // Основная игровая логика
         function addScore(amount) {
             score += amount;
             totalEarned += amount;
@@ -306,7 +329,6 @@
             document.getElementById('multiplier').disabled = score < 100 * Math.pow(2, multiplierLevel);
         }
 
-        // Переключение между игрой и профилем
         function showProfile() {
             mainContainer.style.display = 'none';
             profileContainer.style.display = 'block';
@@ -320,7 +342,6 @@
             tg.BackButton.hide();
         }
 
-        // Система сохранения
         function saveGame() {
             localStorage.setItem('jabcoinSave', JSON.stringify({
                 score,
@@ -349,22 +370,21 @@
             }
         }
 
-        // Инициализация
         window.onload = () => {
             loadUserData();
             loadGame();
-            
-            // Настройка кнопки "Назад" в Telegram
             tg.BackButton.hide();
             
-            // Автокликер
+            clickArea.addEventListener('click', (e) => {
+                const amount = Math.pow(2, multiplierLevel);
+                addScore(amount);
+                const rect = clickArea.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                createClickEffect(amount, e.clientX, e.clientY);
+            });
+
             setInterval(() => addScore(autoClickers), 1000);
-            
-            // Клик-обработчик
-            document.getElementById('clickArea').addEventListener('click', 
-                () => addScore(Math.pow(2, multiplierLevel)));
-            
-            // Автосохранение
             setInterval(saveGame, 30000);
         };
     </script>
