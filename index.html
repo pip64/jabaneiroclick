@@ -4,12 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JabCoin Clicker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --tg-theme-bg-color: #1a1a1a;
+            --tg-theme-text-color: #ffffff;
+            --tg-theme-button-color: #2a2a2a;
+            --tg-theme-secondary-bg-color: #333333;
+        }
+
         body {
             margin: 0;
             padding: 20px;
-            background-color: #1a1a1a;
-            color: white;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
@@ -19,15 +27,31 @@
         .container {
             max-width: 400px;
             width: 100%;
+            position: relative;
+        }
+
+        .profile-container {
+            display: none;
         }
 
         .header {
             text-align: center;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-btn {
+            background: none;
+            border: none;
+            color: var(--tg-theme-text-color);
+            cursor: pointer;
+            font-size: 14px;
         }
 
         .score-container {
-            background: #2a2a2a;
+            background: var(--tg-theme-button-color);
             padding: 15px;
             border-radius: 12px;
             text-align: center;
@@ -35,7 +59,7 @@
         }
 
         .click-area {
-            background: #333;
+            background: var(--tg-theme-secondary-bg-color);
             border-radius: 50%;
             width: 200px;
             height: 200px;
@@ -57,35 +81,67 @@
             width: 150px;
             height: 150px;
             user-select: none;
+            object-fit: cover;
+            border-radius: 50%;
         }
 
-        .coins-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            pointer-events: none;
+        .profile-header {
+            background: var(--tg-theme-button-color);
+            padding: 60px 15px 15px;
+            position: relative;
+            margin-bottom: 40px;
         }
 
-        .coin {
+        .profile-photo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
             position: absolute;
-            color: gold;
-            font-weight: bold;
-            animation: coin-float 1s ease-out forwards;
+            bottom: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid var(--tg-theme-text-color);
         }
 
-        @keyframes coin-float {
-            0% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-100px); }
+        .profile-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            margin: 45px 0 5px;
+        }
+
+        .profile-username {
+            color: #888;
+            margin-bottom: 15px;
+        }
+
+        .profile-bio {
+            padding: 0 20px;
+            color: #aaa;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            background: none;
+            border: none;
+            color: var(--tg-theme-text-color);
+            cursor: pointer;
+            font-size: 16px;
         }
 
         .upgrades {
-            background: #2a2a2a;
+            background: var(--tg-theme-button-color);
             padding: 15px;
             border-radius: 12px;
         }
 
         .upgrade {
-            background: #333;
+            background: var(--tg-theme-secondary-bg-color);
             padding: 10px;
             margin-bottom: 10px;
             border-radius: 8px;
@@ -115,9 +171,10 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="mainContainer">
         <div class="header">
-            <h1>🤑 JabCoin</h1>
+            <h1>🐸 JabCoin</h1>
+            <button class="profile-btn" onclick="showProfile()">Профиль</button>
         </div>
 
         <div class="score-container">
@@ -126,7 +183,9 @@
         </div>
 
         <div class="click-area" id="clickArea">
-            <img src="https://zoogalaktika.ru/assets/images/amphibia/anura/bufonidae/bufo-bufo/bufo-bufo_01.jpg" class="jabka" alt="Jabka">
+            <img src="https://zoogalaktika.ru/assets/images/amphibia/anura/bufonidae/bufo-bufo/bufo-bufo_01.jpg" 
+                 class="jabka" 
+                 alt="Jabka">
         </div>
 
         <div class="upgrades">
@@ -141,101 +200,173 @@
             <div class="upgrade">
                 <div>
                     <h3>Множитель</h3>
-                    <p>x2 за клик</p>
+                    <p id="multiplierDesc">x2 за клик</p>
                 </div>
                 <button id="multiplier" onclick="buyMultiplier()">Купить 100</button>
             </div>
         </div>
     </div>
 
-    <div class="coins-container" id="coinsContainer"></div>
+    <div class="container profile-container" id="profileContainer">
+        <button class="back-btn" onclick="showGame()">← Назад</button>
+        <div class="profile-header">
+            <img id="profilePhoto" class="profile-photo" alt="Фото профиля">
+        </div>
+        
+        <div class="profile-info">
+            <h2 class="profile-name" id="profileName"></h2>
+            <div class="profile-username" id="profileUsername"></div>
+            <div class="profile-bio" id="profileBio">Люблю жаб, кликеры и криптовалюту 🐸🚀</div>
+        </div>
+
+        <div class="upgrades">
+            <div class="upgrade">
+                <div>
+                    <h3>Всего заработано</h3>
+                    <p id="totalEarned">0 JabCoins</p>
+                </div>
+            </div>
+            <div class="upgrade">
+                <div>
+                    <h3>Рекорд</h3>
+                    <p id="highScore">0 JabCoins</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
+        // Инициализация Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
         let score = 0;
         let autoClickers = 0;
-        let multiplier = 1;
+        let multiplierLevel = 0;
+        let totalEarned = 0;
+        let highScore = 0;
         
+        const mainContainer = document.getElementById('mainContainer');
+        const profileContainer = document.getElementById('profileContainer');
         const scoreElement = document.getElementById('score');
-        const clickArea = document.getElementById('clickArea');
-        const coinsContainer = document.getElementById('coinsContainer');
+        const totalEarnedElement = document.getElementById('totalEarned');
+        const highScoreElement = document.getElementById('highScore');
+        
+        // Загрузка данных пользователя Telegram
+        function loadUserData() {
+            const user = tg.initDataUnsafe.user;
+            if(user) {
+                document.getElementById('profileName').textContent = 
+                    `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
+                document.getElementById('profileUsername').textContent = `@${user.username}`;
+                if(user.photo_url) {
+                    document.getElementById('profilePhoto').src = user.photo_url;
+                }
+            }
+        }
 
-        // Обработчик клика
-        clickArea.addEventListener('click', () => {
-            addScore(1 * multiplier);
-            createCoinAnimation(event);
-        });
-
-        // Авто-кликер
-        setInterval(() => {
-            addScore(autoClickers);
-        }, 1000);
-
+        // Основная игровая логика
         function addScore(amount) {
             score += amount;
+            totalEarned += amount;
+            if(score > highScore) highScore = score;
             scoreElement.textContent = Math.floor(score);
+            totalEarnedElement.textContent = Math.floor(totalEarned) + ' JabCoins';
+            highScoreElement.textContent = Math.floor(highScore) + ' JabCoins';
             updateButtons();
         }
 
-        function createCoinAnimation(event) {
-            const coin = document.createElement('div');
-            coin.className = 'coin';
-            coin.textContent = `+${multiplier}`;
-            coin.style.left = `${event.clientX}px`;
-            coin.style.top = `${event.clientY}px`;
-            coinsContainer.appendChild(coin);
-            
-            setTimeout(() => coin.remove(), 1000);
-        }
-
         function buyAutoClicker() {
-            if (score >= 50) {
-                score -= 50;
+            const cost = 50 * Math.pow(2, autoClickers);
+            if(score >= cost) {
+                score -= cost;
                 autoClickers++;
                 updateButtons();
                 scoreElement.textContent = Math.floor(score);
-                document.getElementById('autoClicker').textContent = `Купить ${Math.floor(50 * Math.pow(1.15, autoClickers))}`;
+                document.getElementById('autoClicker').textContent = `Купить ${50 * Math.pow(2, autoClickers)}`;
             }
         }
 
         function buyMultiplier() {
-            if (score >= 100) {
-                score -= 100;
-                multiplier *= 2;
+            const cost = 100 * Math.pow(2, multiplierLevel);
+            if(score >= cost) {
+                score -= cost;
+                multiplierLevel++;
                 updateButtons();
                 scoreElement.textContent = Math.floor(score);
-                document.getElementById('multiplier').textContent = `Купить ${Math.floor(100 * Math.pow(1.5, multiplier))}`;
+                document.getElementById('multiplier').textContent = `Купить ${100 * Math.pow(2, multiplierLevel)}`;
+                document.getElementById('multiplierDesc').textContent = 
+                    `x${Math.pow(2, multiplierLevel + 1)} за клик`;
             }
         }
 
         function updateButtons() {
-            document.getElementById('autoClicker').disabled = score < 50 * Math.pow(1.15, autoClickers);
-            document.getElementById('multiplier').disabled = score < 100 * Math.pow(1.5, multiplier);
+            document.getElementById('autoClicker').disabled = score < 50 * Math.pow(2, autoClickers);
+            document.getElementById('multiplier').disabled = score < 100 * Math.pow(2, multiplierLevel);
         }
 
-        // Сохранение прогресса
+        // Переключение между игрой и профилем
+        function showProfile() {
+            mainContainer.style.display = 'none';
+            profileContainer.style.display = 'block';
+            tg.BackButton.show();
+            tg.BackButton.onClick(showGame);
+        }
+
+        function showGame() {
+            mainContainer.style.display = 'block';
+            profileContainer.style.display = 'none';
+            tg.BackButton.hide();
+        }
+
+        // Система сохранения
         function saveGame() {
             localStorage.setItem('jabcoinSave', JSON.stringify({
                 score,
                 autoClickers,
-                multiplier
+                multiplierLevel,
+                totalEarned,
+                highScore
             }));
         }
 
-        // Загрузка прогресса
         function loadGame() {
             const save = JSON.parse(localStorage.getItem('jabcoinSave'));
-            if (save) {
+            if(save) {
                 score = save.score || 0;
                 autoClickers = save.autoClickers || 0;
-                multiplier = save.multiplier || 1;
+                multiplierLevel = save.multiplierLevel || 0;
+                totalEarned = save.totalEarned || 0;
+                highScore = save.highScore || 0;
+                
                 scoreElement.textContent = Math.floor(score);
-                updateButtons();
+                document.getElementById('autoClicker').textContent = `Купить ${50 * Math.pow(2, autoClickers)}`;
+                document.getElementById('multiplier').textContent = `Купить ${100 * Math.pow(2, multiplierLevel)}`;
+                document.getElementById('multiplierDesc').textContent = `x${Math.pow(2, multiplierLevel + 1)} за клик`;
+                totalEarnedElement.textContent = Math.floor(totalEarned) + ' JabCoins';
+                highScoreElement.textContent = Math.floor(highScore) + ' JabCoins';
             }
         }
 
-        // Авто-сохранение каждые 30 секунд
-        setInterval(saveGame, 30000);
-        window.onload = loadGame;
+        // Инициализация
+        window.onload = () => {
+            loadUserData();
+            loadGame();
+            
+            // Настройка кнопки "Назад" в Telegram
+            tg.BackButton.hide();
+            
+            // Автокликер
+            setInterval(() => addScore(autoClickers), 1000);
+            
+            // Клик-обработчик
+            document.getElementById('clickArea').addEventListener('click', 
+                () => addScore(Math.pow(2, multiplierLevel)));
+            
+            // Автосохранение
+            setInterval(saveGame, 30000);
+        };
     </script>
 </body>
 </html>
